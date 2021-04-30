@@ -15,14 +15,13 @@ def main():
     current_dir = current_dir if current_dir is not '' else '.'
     output_dir_path = current_dir + '/models'
     training_data_dir_path = current_dir + '/data/training_data'
-
     classifier = ResumeParser()
     batch_size = 64
     epochs = 20
     history = classifier.fit(training_data_dir_path=training_data_dir_path,
                              model_dir_path=output_dir_path,
                              batch_size=batch_size, epochs=epochs,
-                             test_size=0.3,
+                             test_size=0.2,
                              random_state=random_state)
 
 

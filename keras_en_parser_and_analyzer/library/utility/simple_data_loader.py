@@ -12,9 +12,12 @@ def load_text_label_pairs(data_dir_path, label_type=None):
         if os.path.isfile(data_file_path) and f.lower().endswith('.txt'):
             with open(data_file_path, mode='rt', encoding='utf8') as file:
                 for line in file:
-                    line_type, line_label, sentence = line.strip().split('\t')
-                    if label_type == 'line_type':
-                        result.append((sentence, line_type))
-                    else:
-                        result.append((sentence, line_label))
+                    res = line.strip().split('\t')
+                    if len(res) == 3:
+                        line_type, line_label, sentence = res[0], res[1], res[2]
+                        #line_type, line_label, sentence = line.strip().split('\t')
+                        if label_type == 'line_type':
+                            result.append((sentence, line_type))
+                        else:
+                            result.append((sentence, line_label))
     return result

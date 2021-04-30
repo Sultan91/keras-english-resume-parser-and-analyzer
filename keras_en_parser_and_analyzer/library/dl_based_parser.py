@@ -1,13 +1,14 @@
 
 from keras_en_parser_and_analyzer.library.classifiers.lstm import WordVecBidirectionalLstmSoftmax
+from keras_en_parser_and_analyzer.library.prepare_train_dataset import TextPreprocessor
 from keras_en_parser_and_analyzer.library.utility.parser_rules import *
 from keras_en_parser_and_analyzer.library.utility.simple_data_loader import load_text_label_pairs
 from keras_en_parser_and_analyzer.library.utility.text_fit import fit_text
 from keras_en_parser_and_analyzer.library.utility.tokenizer_utils import word_tokenize
 import os
 
-line_labels = {0: 'experience', 1: 'knowledge', 2: 'education', 3: 'project', 4: 'others'}
-line_types = {0: 'header', 1: 'meta', 2: 'content'}
+line_labels = {0: 'experience', 1: 'education', 2: 'skills'}
+line_types = {0: 'content', 1: 'footer'}
 
 
 class ResumeParser(object):
@@ -51,6 +52,7 @@ class ResumeParser(object):
     def fit_line_label(self, training_data_dir_path, model_dir_path, batch_size=None, epochs=None,
                        test_size=None,
                        random_state=None):
+        print(training_data_dir_path)
         text_data_model = fit_text(training_data_dir_path, label_type='line_label')
         text_label_pairs = load_text_label_pairs(training_data_dir_path, label_type='line_label')
 
@@ -110,11 +112,14 @@ class ResumeParser(object):
 
     def parse(self, texts, print_line=False):
         self.raw = texts
+        proc = TextPreprocessor(n_jobs=-0)
         for p in texts:
             if len(p) > 10:
+                p = proc._preprocess_text(p)
                 s = word_tokenize(p.lower())
                 line_label = self.line_label_classifier.predict_class(sentence=p)
                 line_type = self.line_type_classifier.predict_class(sentence=p)
+                print('Prediction: ', p+'   |   '+line_label+'  |   '+line_type)
                 unknown = True
                 name = extract_name(s, p)
                 email = extract_email(s, p)

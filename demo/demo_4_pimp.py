@@ -14,6 +14,7 @@ def pre_analyze_cv(file_name: str):
 
     df = pd.DataFrame(preds)
     parser.define_header_lines(df)
+    parser.detect_blocks(preds)
 
 predictions = pre_analyze_cv('data/resume_samples/502661448+Daniil.pdf')
 print(predictions)

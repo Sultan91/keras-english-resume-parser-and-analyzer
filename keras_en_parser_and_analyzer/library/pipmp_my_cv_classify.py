@@ -131,13 +131,24 @@ class ResumeParser(object):
                     self.unknown = unknown
         return predictions
 
-    def high_level_detection(self, predictions: Dict) -> pd.DataFrame:
+    def detect_blocks(self, predictions: Dict) -> pd.DataFrame:
         """
-        taking results from parse() and grouping them
+        taking results from parse()
+        Detecting header - personal data if found
+        Data frame in the form:
+        | line  | type  |   label |
+        -----------------------
+        |'same' | header | personal|
         """
         df = pd.DataFrame(predictions)
+        df.at[:, 'has_date'] = False
+        date_idxs = []
+        for i, row in df.iterrows():
+            if has_date(row['line']):
+                date_idxs.append(i)
+                df.at[i, 'has_date'] = True
 
-
+        date_idxs
         return df
 
     def define_header_lines(self, df_predictions: pd.DataFrame):
@@ -176,16 +187,35 @@ def detect_date(token: str):
     token = token.lower()
     # Feb 2010
     mask1 = r"((jan)|(feb)|(mar)|(apr)|(may)|(jun)|(jul)|(aug)|(sep)|(oct)|(nov)|(dec))\s([1-9]|([12][0-9])|(3[04]))"
+    mask4 = r"((january)|(february)|(march)|(april)|(may)|(june)|(july)|(august)|(september)|(october)|(november)|(december))\s([1-9]|([12][0-9])|(3[04]))"
     date1 = search(mask1, token)
     # 12-09-1991
-    mask2 = r'(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]|(?:Jan|Mar|May|Jul|Aug|Oct|Dec)))\1|(?:(?:29|30)(\/|-|\.)(?:0?[1,3-9]|1[0-2]|(?:Jan|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec))\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)(?:0?2|(?:Feb))\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9]|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep))|(?:1[0-2]|(?:Oct|Nov|Dec)))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$'
+    mask2 = r'(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]|(?:january|march|may|july|august|october|december)))\1|(?:(?:29|30)(\/|-|\.)(?:0?[1,3-9]|1[0-2]|(?:january|march|april|may|january|july|august|september|october|november|december))\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)(?:0?2|(?:february))\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9]|(?:january|february|march|april|may|june|july|august|september))|(?:1[0-2]|(?:october|november|december)))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$'
     date2 = search(mask2, token)
     # 09/2020, 09-2020, 09.2020 dates
     mask3 = r'[0-9]{2}(-|.|/)[0-9]{4}'
     date3 = search(mask3, token)
-    if date1 or date2 or date3:
+    date4 = search(mask4, token)
+    if date1 or date2 or date3 or date4:
         try:
             date = parse(token).date()
             return date
         except ParserError as e:
             return None
+
+
+def has_date(line: str) -> bool:
+    tokens = line.split(' ')
+    for i in range(len(tokens)-1):
+        result = detect_date(' '.join(tokens[i:i+2]))
+        if result is not None:
+            return True
+    return False
+
+
+def find_date(line: str) -> str:
+    for token in line.split(' '):
+        result = detect_date(token)
+        if result is not None:
+            return result
+    return None

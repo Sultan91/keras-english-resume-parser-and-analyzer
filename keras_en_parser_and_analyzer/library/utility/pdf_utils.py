@@ -13,7 +13,8 @@ def pdf_to_text(fname, pages=None):
 
     output = StringIO()
     manager = PDFResourceManager()
-    converter = TextConverter(manager, output, laparams=LAParams())
+    # char_margin=20 - not allowing to break lines
+    converter = TextConverter(manager, output, laparams=LAParams(char_margin=20))
     interpreter = PDFPageInterpreter(manager, converter)
 
     infile = open(fname, 'rb')

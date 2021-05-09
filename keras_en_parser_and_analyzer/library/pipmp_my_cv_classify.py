@@ -131,7 +131,7 @@ class ResumeParser(object):
                     self.unknown = unknown
         return predictions
 
-    def detect_blocks(self, predictions: Dict) -> pd.DataFrame:
+    def detect_blocks(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         taking results from parse()
         Detecting header - personal data if found
@@ -140,22 +140,22 @@ class ResumeParser(object):
         -----------------------
         |'same' | header | personal|
         """
-        df = pd.DataFrame(predictions)
         df.at[:, 'has_date'] = False
         date_idxs = []
         for i, row in df.iterrows():
             if has_date(row['line']):
                 date_idxs.append(i)
                 df.at[i, 'has_date'] = True
-
-        date_idxs
         return df
 
     def define_header_lines(self, df_predictions: pd.DataFrame):
         """
         If predictions contain personal/header information label all prior rows as personal
         """
+        header_limit_percent = 0.1
+        max_allowed_header_idx = int(df_predictions.shape[0]*header_limit_percent)
         personal_indexes = df_predictions[df_predictions['label'] == 'personal'].index
+        personal_indexes = [i for i in personal_indexes if i <= max_allowed_header_idx]
         if len(personal_indexes)>0:
             last_idx = personal_indexes[-1]
             df_predictions.iloc[:last_idx, :][['type', 'label']] = ('header', 'personal')
@@ -198,9 +198,13 @@ def detect_date(token: str):
     date4 = search(mask4, token)
     if date1 or date2 or date3 or date4:
         try:
+            # Case with 1999 2003 is faulty -> gives mask as 99 2003
+            if len(token.split(' ')[0]) == len(token.split(' ')[1]) == 4:
+                token = token.split(' ')[0]
             date = parse(token).date()
             return date
-        except ParserError as e:
+        except Exception as e:
+            print("Date Parse Error: {}".format(e))
             return None
 
 

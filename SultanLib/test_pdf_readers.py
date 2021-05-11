@@ -229,7 +229,7 @@ class PDFReadersTestCase(unittest.TestCase):
         Process finished with exit code 0
         EDUCATION AND QUALIFICATIONS 
         
-        Royal Melbourne Institute of Technology (RMIT) 
+        Royal Melbourne Institute of Technology (RMIT) Jul 2014 –   Oct 2015 
         Bachelor of Business (Accountancy) 
         GPA: 3.1 / 4 
         
@@ -243,7 +243,7 @@ class PDFReadersTestCase(unittest.TestCase):
         
         SKILLS AND COMPETENCIES 
         
-        Jul 2014 –   Oct 2015 
+        
         
         Apr 2009 – Apr 2012 
         
